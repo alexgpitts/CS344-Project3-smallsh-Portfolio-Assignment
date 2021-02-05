@@ -10,21 +10,29 @@ The following program forks a child process. The child process then replaces the
 */
 int main (void){
 
-    char line[1000];
-    char newargv[512][512];
+    int words = 1;
+    char buffer[128];
+    int result = scanf("%127[^\n]",buffer);
 
-    while (1){
-                   
-        printf(":");
-        fgets(line, sizeof line, stdin);
-        strcpy(newargv[0], strtok(line, " "));
-        strcpy(newargv[1], strtok(NULL, " "));    
-        
-        // printf("%s", line);
+    if(result > 0){
+        char **array;
 
-        for(int i = 0; i<2; i++){
-            printf("%s\n", newargv[i]);
+        for(int i = 0; buffer[i]!='\0'; i++){
+            if(buffer[i]==' ' || buffer[i]=='\n' || buffer[i]=='\t'){
+                    words++;
+            }
         }
+
+        array = malloc(words * sizeof(char*));
+
+        // Using RoadRunner suggestion
+        array[0] = strtok (buffer," ");
+        for(int w = 1; w < words; w++){
+            array[w] = strtok (NULL," ");
+        }
+        // for(int i = 0; i < sizeof(array)-1; i++){
+        //     printf("%s\n", array[i]);
+        // }
     }
 
     return 0;
