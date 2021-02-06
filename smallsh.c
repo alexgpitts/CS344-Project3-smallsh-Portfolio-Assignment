@@ -18,8 +18,8 @@ int main(){
   //loop for shell
   while(1){
     char **array;//pointer to array
-    char *output;
-    char **array3; 
+    char *output;//pointer to path for redirecting output
+    char *input; //pointer to path for redirecting input
     
     //this while loop was inspired by 
     while(result < 1){
@@ -37,7 +37,7 @@ int main(){
             flag = i;
             
           }
-          if(line[i]=='<'){
+          if(line[i]=='<' && line[i-1]==' ' && line[i+1]==' '){
             flag2 = i;
             
           }
@@ -63,7 +63,8 @@ int main(){
         }
 
         else if(flag !=0 && flag2==0 && flag3==0){
-          array = malloc((3) * sizeof(char*));
+          printf("%d", words); 
+          array = malloc((words - 2) * sizeof(char*));
           array[0] = strtok (line," ");
           for(int w = 1; w < 2; w++){
             array[w] = strtok (NULL," >");
@@ -73,7 +74,18 @@ int main(){
           //printf("%s", output);
           fflush(stdout);
         }
-          
+
+        else if(flag ==0 && flag2!=0 && flag3==0){
+          array = malloc((words - 2) * sizeof(char*));
+          array[0] = strtok (line," ");
+          for(int w = 1; w < 2; w++){
+            array[w] = strtok (NULL," >");
+          }
+          // array[2] = "NULL";
+          output = strtok (NULL," >\0");
+          //printf("%s", output);
+          fflush(stdout);
+        }
       }
     }
     result = 0; 
