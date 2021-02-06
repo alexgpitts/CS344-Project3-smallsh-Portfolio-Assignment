@@ -30,9 +30,6 @@ int main (void){
         for(int w = 1; w < words; w++){
             array[w] = strtok (NULL," ");
         }
-        // for(int i = 0; i < sizeof(array)-1; i++){
-        //     printf("%s\n", array[i]);
-        // }
     }
 
     return 0;

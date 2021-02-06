@@ -13,7 +13,7 @@ The following program forks a child process. The child process then replaces the
 int main(){
   int words = 1;
   char line[1028];
-  int flag, flag2, flag3, newOut, temp, result, childStatus;  
+  int flag, flag2, flag3, newOut, newIn, temp, result, childStatus;  
 
   //loop for shell
   while(1){
@@ -50,6 +50,8 @@ int main(){
             words++;
           }
         }
+
+
         //printf("\n%d, %d, %d", flag, flag2, flag3);
         //allocate array to store correct number of words
         //printf("\n%d, %d, %d\n", flag, flag2, flag3);
@@ -62,27 +64,30 @@ int main(){
             }
         }
 
+        //if only redirecting stdout
         else if(flag !=0 && flag2==0 && flag3==0){
-          printf("%d", words); 
-          array = malloc((words - 2) * sizeof(char*));
+          //printf("%d", words); 
+          array = malloc((words - 1) * sizeof(char*));
           array[0] = strtok (line," ");
-          for(int w = 1; w < 2; w++){
-            array[w] = strtok (NULL," >");
+          for(int w = 1; w < words - 2; w++){
+            array[w] = strtok (NULL," ");
           }
-          // array[2] = "NULL";
+          array[words-1] = "NULL";
           output = strtok (NULL," >\0");
           //printf("%s", output);
           fflush(stdout);
         }
 
+
+        //if only redirecting stdin
         else if(flag ==0 && flag2!=0 && flag3==0){
-          array = malloc((words - 2) * sizeof(char*));
+          array = malloc((words - 1) * sizeof(char*));
           array[0] = strtok (line," ");
-          for(int w = 1; w < 2; w++){
-            array[w] = strtok (NULL," >");
+          for(int w = 1; w < words - 2; w++){
+            array[w] = strtok (NULL," <");
           }
-          // array[2] = "NULL";
-          output = strtok (NULL," >\0");
+          array[words - 1] = NULL;
+          output = strtok (NULL," <\0");
           //printf("%s", output);
           fflush(stdout);
         }
@@ -102,6 +107,8 @@ int main(){
         // In the child process
         //printf("CHILD(%d) running ls command\n", getpid());
         
+
+        //if only redirecting stdout
         if(flag !=0 && flag2==0 && flag3==0){ 
           newOut = open (output, O_WRONLY | O_CREAT | O_TRUNC, 0664);
           if(newOut == -1){
@@ -113,7 +120,21 @@ int main(){
             perror("newOUt dub2()");
             exit(2);
           }
-        
+        }
+
+        //if only redirecting stdin
+        else if(flag ==0 && flag2!=0 && flag3==0){
+          newIn = open(output, O_RDONLY);
+          if(newOut == -1){
+            perror("newIn fopen()");
+            exit(1);
+          }
+          result = dup2(newOut, 0);
+          if(result == -1){
+            perror("newIn dub2()");
+            exit(2);
+          }
+
         }
 
         // Replace the current program with user entered command line
@@ -122,12 +143,11 @@ int main(){
         perror("execve");
         exit(2);
         break;
+
       default:
         
         // In the parent process
         // Wait for child's termination
-        
-
         spawnPid = waitpid(spawnPid, &childStatus, 0);
         
         //printf("PARENT(%d): child(%d) terminated. Exiting\n", getpid(), spawnPid);
