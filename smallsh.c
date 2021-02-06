@@ -26,18 +26,19 @@ int main(){
       flag = 0;
       flag2 = 0;
       flag3 = 0;
+      words = 1;
       printf(": ");
       result = scanf("%1028[^\n]",line);
       getchar();
       
       if(result > 0){
         //for loop to walk to end of line and counting words
-        for(int i = 0; line[i]!='\0'; i++){
-          if(line[i]=='>' && line[i-1]==' ' && line[i+1]==' '){
+        for(int i = 1; line[i]!='\0'; i++){
+          if(line[i]=='>'){
             flag = i;
             
           }
-          if(line[i]=='<' && line[i-1]==' ' && line[i+1]==' '){
+          if(line[i]=='<'){
             flag2 = i;
             
           }
@@ -56,8 +57,11 @@ int main(){
         //allocate array to store correct number of words
         //printf("\n%d, %d, %d\n", flag, flag2, flag3);
         if(flag == 0 && flag2 == 0 && flag3 == 0){
+          //allocate array to store correct number of words
           array = malloc(words * sizeof(char*));
           //printf("hit");
+
+          //fill array
             array[0] = strtok (line," ");
             for(int w = 1; w < words; w++){
               array[w] = strtok (NULL," ");
@@ -69,12 +73,14 @@ int main(){
           //printf("%d", words); 
           array = malloc((words - 1) * sizeof(char*));
           array[0] = strtok (line," ");
+          //printf("token arg %d: %s\n", 0, array[0]);
           for(int w = 1; w < words - 2; w++){
             array[w] = strtok (NULL," ");
+            //printf("token arg %d: %s\n", w, array[w]);
           }
-          array[words-1] = "NULL";
-          output = strtok (NULL," >\0");
-          //printf("%s", output);
+          array[words-2] = NULL;
+          output = strtok (NULL," >");
+          //printf("output file: %s\n", output);
           fflush(stdout);
         }
 
@@ -84,13 +90,36 @@ int main(){
           array = malloc((words - 1) * sizeof(char*));
           array[0] = strtok (line," ");
           for(int w = 1; w < words - 2; w++){
-            array[w] = strtok (NULL," <");
+            array[w] = strtok (NULL," ");
           }
-          array[words - 1] = NULL;
-          output = strtok (NULL," <\0");
-          //printf("%s", output);
+          array[words-2] = NULL;
+          input = strtok (NULL," <");
+          //printf("input: %s\n", input);
           fflush(stdout);
         }
+
+        //if redirecting both stdin and stdout
+        else if(flag !=0 && flag2!=0 && flag3==0){
+          array = malloc((words - (words - 2)) * sizeof(char*));
+          array[0] = strtok (line," ");
+          for(int w = 1; w < (words - (words - 1)); w++){
+            array[w] = strtok (NULL," ");
+          }
+          array[words-(words - 1)] = NULL;
+          if(flag < flag2){
+            output = strtok (NULL," <>");
+            input = strtok (NULL," <>");
+
+          }
+          else{
+            input = strtok (NULL," ><");
+            output = strtok (NULL," <>");
+          }
+          printf("arg1: %s\targ2: %s\n", array[0], array[1]);
+          printf("input: %s\toutput: %s\n", input, output);
+          fflush(stdout);
+        }
+
       }
     }
     result = 0; 
@@ -110,7 +139,7 @@ int main(){
 
         //if only redirecting stdout
         if(flag !=0 && flag2==0 && flag3==0){ 
-          newOut = open (output, O_WRONLY | O_CREAT | O_TRUNC, 0664);
+          newOut = open (output, O_WRONLY | O_CREAT | O_TRUNC, 0777);
           if(newOut == -1){
             perror("newOUt fopen()");
             exit(1);
@@ -124,17 +153,46 @@ int main(){
 
         //if only redirecting stdin
         else if(flag ==0 && flag2!=0 && flag3==0){
-          newIn = open(output, O_RDONLY);
-          if(newOut == -1){
-            perror("newIn fopen()");
+          newIn = open(input, O_RDONLY);
+          if(newIn == -1){
+            perror("newIn open()");
             exit(1);
           }
-          result = dup2(newOut, 0);
+          result = dup2(newIn, 0);
           if(result == -1){
             perror("newIn dub2()");
             exit(2);
           }
+          
 
+        }
+
+        //if redirecting both stdin and stdout
+        else if(flag !=0 && flag2!=0 && flag3==0){
+
+          //redirecting stdout
+          newOut = open (output, O_WRONLY | O_CREAT | O_TRUNC, 0777);
+          if(newOut == -1){
+            perror("newOUt fopen()");
+            exit(1);
+          }
+          result = dup2(newOut, 1);
+          if(result == -1){
+            perror("newOUt dub2()");
+            exit(2);
+          }
+
+          //redirecting stdin
+          newIn = open(input, O_RDONLY);
+          if(newIn == -1){
+            perror("newIn open()");
+            exit(1);
+          }
+          result = dup2(newIn, 0);
+          if(result == -1){
+            perror("newIn dub2()");
+            exit(2);
+          }
         }
 
         // Replace the current program with user entered command line
@@ -153,7 +211,7 @@ int main(){
         //printf("PARENT(%d): child(%d) terminated. Exiting\n", getpid(), spawnPid);
         break;
     }
-    
+    free(array);
     
   } 
   
