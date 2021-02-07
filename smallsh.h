@@ -1,4 +1,6 @@
 
+#include <math.h>
+
 
 struct Command{
     char **array;
@@ -8,8 +10,10 @@ struct Command{
     int comment; 
     int newOut, newIn;
     int words; 
+ 
     char *output;//pointer to path for redirecting output
     char *input; //pointer to path for redirecting input
+    
 };
 
 struct Command get_command(char line[2048]){
@@ -18,6 +22,7 @@ struct Command get_command(char line[2048]){
     command.flag2 = 0;
     command.comment = 0;
     command.words = 1;
+    
     for(int i = 1; line[i]!='\0'; i++){
       if(line[i]=='>'){
         command.flag = i;
@@ -26,6 +31,10 @@ struct Command get_command(char line[2048]){
       if(line[i]=='<'){
         command.flag2 = i;
         
+      }
+      if(line[i] == '&' && line[i+1] == '\0'){
+        command.background = 1;
+        command.words--;
       }
 
       else if(line[i]==' ' || line[i]=='\n' || line[i]=='\t'){
@@ -42,9 +51,9 @@ struct Command get_command(char line[2048]){
       //printf("hit");
 
       //fill array
-        command.array[0] = strtok (line," ");
+        command.array[0] = strtok (line," &");
         for(int w = 1; w < command.words; w++){
-          command.array[w] = strtok (NULL," ");
+          command.array[w] = strtok (NULL," &");
         }
         command.array[command.words] = NULL;
         // for(int i = 0; i<command.words; i++){
@@ -110,6 +119,7 @@ void child_logic(struct Command command){
   int newOut, newIn, result;
   // In the child process
   //printf("CHILD(%d) running ls command\n", getpid());
+ 
   
   //if its a comment
   if(command.array[0][0]=='#'){
@@ -175,7 +185,4 @@ void child_logic(struct Command command){
     }
         
   }
-
-
-
 }

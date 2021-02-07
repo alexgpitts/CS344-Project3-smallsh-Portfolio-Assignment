@@ -5,7 +5,9 @@
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
+#include <math.h>
 #include "smallsh.h"
+
 
 
 /*
@@ -14,30 +16,73 @@ The following program forks a child process. The child process then replaces the
 int main(){
   char new_dir[256];
   int words = 1;
-  char line[2048];
+  char line1[2048] ="";
+  char line[3000] = "";
   int flag, flag2, flag3, newOut, newIn, temp, result;
   int childStatus = 0;  
+  int length = snprintf( NULL, 0, "%d", getpid());
+  char* ID = malloc( length + 1 );
+  snprintf( ID, length + 1, "%d", getpid());
+  int k = 0;
+  int j =0; 
+  int i =0;
+  
+
   //struct Command command;
   //struct Command *commandptr; 
   //loop for shell
   while(1){
     setbuf(stdout, NULL); //recommended by someone from class. needed to clear my buffer to clean up my output
+    setbuf(stdin, NULL);
     struct Command command;
-    while(result < 1){
-      printf(": ");
-      result = scanf("%2047[^\n]",line);
-      getchar();
+
+    
       
-      if(result > 0){
-        command = get_command(line);
+    printf(":");
+    result = scanf("%2047[^\n]",line1);
+    getchar();
+    while(line1[i]!='\0'){
+      //printf("%c\n", line1[i]);
+      if(line1[i]=='$' && line1[i+1]== '$'){
+        
+        while(ID[j]!='\0'){
+          line[k] = ID[j];
+          //printf("%c", ID[j]);
+          j++;
+          k++;
+        }
+        i+=3;
+        j =0;
       }
-  
+
+      else{   
+        line[k] = line1[i];
+        i++;
+        k++;  
+        
+      }
+
     }
-    result = 0; 
+    line[k] = '\0';
+    k=0;
+    i=0;
+      
+    
+  
+    // while(line[i]!='\0'){
+    //   printf("%c", line[i]);
+    //   i++;
+    // }
+
+    if(result > 0){
+      command = get_command(line);
+    }
+  
+  
 
     // if user enters exit, exit shell
     if(strcmp(command.array[0], "exit") == 0){
-      exit(0);
+      _exit(0);
     }
     else if(strcmp(command.array[0], "cd")==0){
       if(command.array[1] == NULL){
@@ -52,13 +97,11 @@ int main(){
     else if(strcmp(command.array[0], "status") == 0){
     
       if(childStatus == 0){
-        printf("%d\n", 0);
+        printf("exit code: %d\n", 0);
       }
       else{
-        printf("%d\n", WIFEXITED(childStatus));
+        printf("exit code: %d\n", WIFEXITED(childStatus));
       }
-     
-      
     }
     
     // Fork a new process
@@ -89,7 +132,13 @@ int main(){
           
           // In the parent process
           // Wait for child's termination
-          spawnPid = waitpid(spawnPid, &childStatus, 0);
+          if(command.background == 1){
+            
+          }
+          else{
+            spawnPid = waitpid(spawnPid, &childStatus, 0);
+          }
+         
           
           
           //printf("PARENT(%d): child(%d) terminated. Exiting\n", getpid(), spawnPid);
