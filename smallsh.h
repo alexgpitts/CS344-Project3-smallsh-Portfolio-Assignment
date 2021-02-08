@@ -1,7 +1,6 @@
 
 #include <math.h>
 
-
 struct Command{
     char **array;
     int flag;
@@ -18,6 +17,7 @@ struct Command{
 
 struct Command get_command(char line[2048]){
     struct Command command;
+    command.background = 0;
     command.flag = 0;
     command.flag2 = 0;
     command.comment = 0;
@@ -51,14 +51,15 @@ struct Command get_command(char line[2048]){
       //printf("hit");
 
       //fill array
-        command.array[0] = strtok (line," &");
-        for(int w = 1; w < command.words; w++){
-          command.array[w] = strtok (NULL," &");
-        }
-        command.array[command.words] = NULL;
-        // for(int i = 0; i<command.words; i++){
-        //   printf("%s\n", command.array[i]);
-        // }
+      command.array[0] = strtok (line," &");
+      for(int w = 1; w < command.words; w++){
+        command.array[w] = strtok (NULL," &");
+      }
+      command.array[command.words] = NULL;
+      // for(int i = 0; i<command.words; i++){
+      //   printf("%s\n", command.array[i]);
+      // }
+      
     }
 
     //if only redirecting stdout
@@ -115,17 +116,55 @@ struct Command get_command(char line[2048]){
     return command;
 }
 
+
+
+
+
+
+////////////////////////////parnet logic ^^^^^^^^^^^^//////////////////
+/////////////////////////////child function vvvvv//////////////////////
+
+
+
+
+
 void child_logic(struct Command command){
-  int newOut, newIn, result;
+  int newOut, newIn, result, dev_null;
   // In the child process
   //printf("CHILD(%d) running ls command\n", getpid());
- 
+  
   
   //if its a comment
   if(command.array[0][0]=='#'){
     exit(0);
   }
 
+  //if its a non specifide io background task
+  else if(command.flag == 0 && command.flag2 == 0 && command.background ==1){
+    dev_null = open("/dev/null", O_RDONLY);
+    if(dev_null == -1){
+      perror("dev_null fopen()");
+      exit(1);
+    }
+    //set stdin in to /dev/null
+    result = dup2(dev_null, 0);
+    if(result == -1){
+      perror("> /dev/null dub2()");
+      exit(2);
+    }
+    dev_null = open("/dev/null", O_WRONLY);
+    if(dev_null == -1){
+      perror("dev_null fopen()");
+      exit(1);
+    }
+    //set stdout in to /dev/null
+    result = dup2(dev_null, 1);
+    if(result == -1){
+      perror("< /dev/null dub2()");
+      exit(2);
+    }
+
+  }
 
   //if only redirecting stdout
   else if(command.flag !=0 && command.flag2==0){ 
@@ -138,6 +177,20 @@ void child_logic(struct Command command){
     if(result == -1){
       perror("newOUt dub2()");
       exit(2);
+    }
+    //if background command with unspecifid stdin
+    if(command.background == 1){
+      dev_null = open("/dev/null", O_RDONLY);
+      if(dev_null == -1){
+        perror("dev_null fopen()");
+        exit(1);
+      }
+      //set stdin to /dev/null
+      result = dup2(dev_null, 0);
+      if(result == -1){
+        perror("< /dev/null dub2()");
+        exit(2);
+      }
     }
   }
 
@@ -152,6 +205,20 @@ void child_logic(struct Command command){
     if(result == -1){
       perror("newIn dub2()");
       exit(2);
+    }
+    //if background command with unspecifid stdout
+    if(command.background == 1){
+      dev_null = open("/dev/null", O_WRONLY);
+      if(dev_null == -1){
+        perror("dev_null fopen()");
+        exit(1);
+      }
+      //set stdout to /dev/null
+      result = dup2(dev_null, 1);
+      if(result == -1){
+        perror("> /dev/null dub2()");
+        exit(2);
+      }
     }
       
 
