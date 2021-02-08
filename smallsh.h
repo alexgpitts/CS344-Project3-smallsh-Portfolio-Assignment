@@ -114,7 +114,7 @@ struct Command get_command(char line[2048]){
         command.output = strtok (NULL," <>");//store output file name in output attribute of command object
       }
     }
-    return command;
+    return command; //return the command object
 }
 
 
