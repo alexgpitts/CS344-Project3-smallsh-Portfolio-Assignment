@@ -1,6 +1,11 @@
 
 #include <math.h>
 
+//Author: Alex Pitts
+//Date: 2/8/2021
+
+//description: A header file for smallsh.c
+
 struct Command{
     char **array; //to hold what user entered in prompt seperated by prompt
     int flag; //flag for redirecting stdout (detect a >)

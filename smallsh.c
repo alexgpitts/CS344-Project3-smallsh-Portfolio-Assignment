@@ -9,6 +9,12 @@
 #include <signal.h>
 #include "smallsh.h"
 
+//Author: Alex Pitts
+//Date: 2/8/2021
+
+//description: A simple shell that shares some of the basic functionality of bash
+
+
 int mode = 0; //for counting modes for signal handles
 int killed =0; // to see if chiled was ctrl+c ended
 
